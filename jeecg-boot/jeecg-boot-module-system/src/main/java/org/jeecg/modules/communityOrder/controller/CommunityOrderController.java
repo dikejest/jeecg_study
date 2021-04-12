@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
+import org.jeecg.common.aspect.annotation.PermissionData;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
@@ -26,6 +27,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 
+import org.jeecg.modules.communitySupplyQuantity.entity.CommunitySupplyQuantity;
+import org.jeecg.modules.communitySupplyQuantity.service.ICommunitySupplyQuantityService;
 import org.jeecg.modules.system.entity.SysDepart;
 import org.jeecg.modules.system.service.ISysDepartService;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
@@ -59,7 +62,7 @@ public class CommunityOrderController extends JeecgController<CommunityOrder, IC
 	private ICommunityOrderService communityOrderService;
 
 	@Autowired
-	private ISysDepartService sysDepartService;
+	private ICommunitySupplyQuantityService communityService;
 	/**
 	 * 分页列表查询
 	 *
@@ -69,58 +72,20 @@ public class CommunityOrderController extends JeecgController<CommunityOrder, IC
 	 * @param req
 	 * @return
 	 */
-	/*@AutoLog(value = "疫情物资入库单-分页列表查询-只查该小区(管理员全查)")
+	@AutoLog(value = "疫情物资入库单-分页列表查询-只查该小区(管理员全查)")
 	@ApiOperation(value="疫情物资入库单-分页列表查询-只查该小区(管理员全查)", notes="疫情物资入库单-分页列表查询")
 	@GetMapping(value = "/list")
+	@PermissionData(pageComponent = "communityOrder/CommunityOrderList")
 	public Result<?> queryPageList(CommunityOrder communityOrder,
 								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
 								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
 								   HttpServletRequest req) {
-		//获取用户的登录信息，然后根据org_code获取用户所在职位的小区的id，
-		//然后在根据小区id查询该小区的物资入库登记记录列表。
-		//根据user信息获得orgcode
 		LoginUser principal = (LoginUser)SecurityUtils.getSubject().getPrincipal();
-		log.info("user:{}", principal.getOrgCode());
-		//根据orgcode从部门表中查询他的父id，即对应所在的小区org
-		SysDepart sysDepart = sysDepartService.getSysDepart(principal.getOrgCode());
-		log.info("!!:{}",sysDepart.getId());
-		//然后只查看他能看到的小区的信息。
-		communityOrder.setSysOrgCode(sysDepart.getParentId());
 		QueryWrapper<CommunityOrder> queryWrapper = QueryGenerator.initQueryWrapper(communityOrder, req.getParameterMap());
 		Page<CommunityOrder> page = new Page<CommunityOrder>(pageNo, pageSize);
 		IPage<CommunityOrder> pageList = communityOrderService.page(page, queryWrapper);
 		return Result.OK(pageList);
-	}*/
-
-	//--------------------------------------------------
-
-
-	 @AutoLog(value = "疫情物资入库单-分页列表查询")
-	 @ApiOperation(value="疫情物资入库单-分页列表查询", notes="疫情物资入库单-分页列表查询")
-	 @GetMapping(value = "/list")
-	 public Result<?> queryPageList(CommunityOrder communityOrder,
-									@RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
-									@RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
-									HttpServletRequest req) {
-		 //获取用户的登录信息，然后根据org_code获取用户所在职位的小区的id，
-		 //然后在根据小区id查询该小区的物资入库登记记录列表。
-		 //根据user信息获得orgcode
-		 LoginUser principal = (LoginUser)SecurityUtils.getSubject().getPrincipal();
-		 log.info("user:{}", principal.getOrgCode());
-		 //根据orgcode从部门表中查询他负责的所有部门。
-		 SysDepart sysDepart = sysDepartService.getSysDepart(principal.getOrgCode());
-		 //根据org_code进行模糊查询，查询他的子类的所有id
-		 List<String> ids = sysDepartService.getIds(principal.getOrgCode());
-		 //根据ids查询所有的小区
-		 QueryWrapper<CommunityOrder> wrapper = new QueryWrapper<>();
-		 wrapper.in("sys_org_code",ids);
-		 log.info("!!:{}",sysDepart.getId());
-		 //然后只查看他权限下能看到的小区入库信息。
-		 Page<CommunityOrder> page = new Page<CommunityOrder>(pageNo, pageSize);
-		 IPage<CommunityOrder> pageList = communityOrderService.page(page, wrapper);
-		 return Result.OK(pageList);
-	 }
-
+	}
 	//--------------------------------------------------
 	/**
 	 *   添加
@@ -133,12 +98,10 @@ public class CommunityOrderController extends JeecgController<CommunityOrder, IC
 	@PostMapping(value = "/add")
 	public Result<?> add(@RequestBody CommunityOrder communityOrder) {
 		//判断是否传入了小区编码，若没有，则自动获得该用户的小区的编码
-		if (communityOrder.getSysOrgCode()==null ||communityOrder.getSysOrgCode().equals("")){
-			LoginUser principle = (LoginUser)SecurityUtils.getSubject().getPrincipal();
-			SysDepart depart = sysDepartService.getSysDepart(principle.getOrgCode());
-			communityOrder.setSysOrgCode(depart.getParentId());
+		CommunitySupplyQuantity community = communityService.getById(communityOrder.getAreaId());
+		if (community==null){
+			return Result.error("该小区不存在");
 		}
-
 		//存入数据库，同时更改库存信息
 		communityOrderService.addOrder(communityOrder);
 		return Result.OK("添加成功！");
@@ -185,7 +148,8 @@ public class CommunityOrderController extends JeecgController<CommunityOrder, IC
 	@ApiOperation(value="疫情物资入库单-批量删除", notes="疫情物资入库单-批量删除")
 	@DeleteMapping(value = "/deleteBatch")
 	public Result<?> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
-		this.communityOrderService.removeByIds(Arrays.asList(ids.split(",")));
+		this.communityOrderService.removeOrders(ids);
+		//this.communityOrderService.removeByIds(Arrays.asList(ids.split(",")));
 		return Result.OK("批量删除成功!");
 	}
 	

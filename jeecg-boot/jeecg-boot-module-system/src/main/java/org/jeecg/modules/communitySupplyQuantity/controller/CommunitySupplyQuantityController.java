@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.shiro.SecurityUtils;
 import org.jeecg.common.api.vo.Result;
+import org.jeecg.common.aspect.annotation.PermissionData;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.system.vo.LoginUser;
 import org.jeecg.common.util.oConvertUtils;
@@ -72,9 +73,11 @@ public class CommunitySupplyQuantityController extends JeecgController<Community
 	 * @param req
 	 * @return
 	 */
-	/*@AutoLog(value = "疫情物资库存表-分页列表查询")
+	@AutoLog(value = "疫情物资库存表-分页列表查询")
 	@ApiOperation(value="疫情物资库存表-分页列表查询", notes="疫情物资库存表-分页列表查询")
 	@GetMapping(value = "/list")
+	//权限，对应前端组件
+	@PermissionData(pageComponent="communitySupplyQuantity/CommunitySupplyQuantityList")
 	public Result<?> queryPageList(CommunitySupplyQuantity communitySupplyQuantity,
 								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
 								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
@@ -83,7 +86,7 @@ public class CommunitySupplyQuantityController extends JeecgController<Community
 		Page<CommunitySupplyQuantity> page = new Page<CommunitySupplyQuantity>(pageNo, pageSize);
 		IPage<CommunitySupplyQuantity> pageList = communitySupplyQuantityService.page(page, queryWrapper);
 		return Result.OK(pageList);
-	}*/
+	}
 
 	 /**
 	  * 分页列表查询
@@ -94,7 +97,7 @@ public class CommunitySupplyQuantityController extends JeecgController<Community
 	  * @param req
 	  * @return
 	  */
-	 @AutoLog(value = "疫情物资库存表-分页列表查询")
+	 /*@AutoLog(value = "疫情物资库存表-分页列表查询")
 	 @ApiOperation(value="疫情物资库存表-分页列表查询", notes="疫情物资库存表-分页列表查询")
 	 @GetMapping(value = "/list")
 	 public Result<?> queryPageList(CommunitySupplyQuantity communitySupplyQuantity,
@@ -103,19 +106,19 @@ public class CommunitySupplyQuantityController extends JeecgController<Community
 									HttpServletRequest req) {
 
 		 //根据user信息获得orgcode
-		 LoginUser principal = (LoginUser) SecurityUtils.getSubject().getPrincipal();
-		 log.info("user:{}", principal.getOrgCode());
+		 //LoginUser principal = (LoginUser) SecurityUtils.getSubject().getPrincipal();
+		 //log.info("user:{}", principal.getOrgCode());
 		 //根据orgcode从部门表中查询他负责的所有部门。
-		 SysDepart sysDepart = sysDepartService.getSysDepart(principal.getOrgCode());
+		 //SysDepart sysDepart = sysDepartService.getSysDepart(principal.getOrgCode());
 		 //根据org_code进行模糊查询，查询他的子类的所有id
-		 List<String> ids = sysDepartService.getIds(principal.getOrgCode());
+		 //List<String> ids = sysDepartService.getIds(principal.getOrgCode());
 		 //根据ids查询所有的小区
-		 QueryWrapper<CommunitySupplyQuantity> wrapper = new QueryWrapper<>();
-		 wrapper.in("sys_org_code",ids);
+		 //QueryWrapper<CommunitySupplyQuantity> wrapper = new QueryWrapper<>();
+		 //wrapper.in("sys_org_code",ids);
 		 Page<CommunitySupplyQuantity> page = new Page<CommunitySupplyQuantity>(pageNo, pageSize);
 		 IPage<CommunitySupplyQuantity> pageList = communitySupplyQuantityService.page(page, wrapper);
 		 return Result.OK(pageList);
-	 }
+	 }*/
 
 
 
@@ -130,11 +133,6 @@ public class CommunitySupplyQuantityController extends JeecgController<Community
 	@ApiOperation(value="疫情物资库存表-添加", notes="疫情物资库存表-添加")
 	@PostMapping(value = "/add")
 	public Result<?> add(@RequestBody CommunitySupplyQuantity communitySupplyQuantity) {
-		//判断是否存在该小区
-		CommunitySupplyQuantity flag = communitySupplyQuantityService.getBySysOrgCode(communitySupplyQuantity.getSysOrgCode());
-		if (flag!=null){
-			return Result.error("该小区已存在，请重新选择");
-		}
 		//添加新的小区库存记录，不允许添加已经存在的小区，第一次添加同时对应生成小区的入库登记单
 		communitySupplyQuantityService.addNewCommunity(communitySupplyQuantity);
 		return Result.OK("添加成功！");
@@ -150,8 +148,13 @@ public class CommunitySupplyQuantityController extends JeecgController<Community
 	@ApiOperation(value="疫情物资库存表-编辑", notes="疫情物资库存表-编辑")
 	@PutMapping(value = "/edit")
 	public Result<?> edit(@RequestBody CommunitySupplyQuantity communitySupplyQuantity) {
-		communitySupplyQuantityService.updateById(communitySupplyQuantity);
-		return Result.OK("编辑成功!");
+		// 记录变化了多少，生成一个入库登记记录
+		Boolean status = communitySupplyQuantityService.addOrderByEdit(communitySupplyQuantity);
+		if (status){
+			communitySupplyQuantityService.updateById(communitySupplyQuantity);
+			return Result.OK("编辑成功!");
+		}
+		return Result.error("编辑失败");
 	}
 	
 	/**
@@ -167,7 +170,8 @@ public class CommunitySupplyQuantityController extends JeecgController<Community
 		CommunitySupplyQuantity byId = communitySupplyQuantityService.getById(id);
 		communitySupplyQuantityService.removeById(id);
 		//同时删除小区对应的所有入库单
-		communityOrderService.removeOrders(byId.getSysOrgCode());
+		communityOrderService.removeAllOrder(byId.getId());
+		//同时删除小区出入登记记录
 		return Result.OK("删除成功!");
 	}
 	
@@ -181,7 +185,8 @@ public class CommunitySupplyQuantityController extends JeecgController<Community
 	@ApiOperation(value="疫情物资库存表-批量删除", notes="疫情物资库存表-批量删除")
 	@DeleteMapping(value = "/deleteBatch")
 	public Result<?> deleteBatch(@RequestParam(name="ids",required=true) String ids) {
-		this.communitySupplyQuantityService.removeByIds(Arrays.asList(ids.split(",")));
+		this.communitySupplyQuantityService.removeCommunitys(ids);
+		//this.communitySupplyQuantityService.removeByIds(Arrays.asList(ids.split(",")));
 		return Result.OK("批量删除成功!");
 	}
 	

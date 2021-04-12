@@ -10,6 +10,7 @@ import java.net.URLDecoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.jeecg.common.api.vo.Result;
+import org.jeecg.common.aspect.annotation.PermissionData;
 import org.jeecg.common.system.query.QueryGenerator;
 import org.jeecg.common.util.oConvertUtils;
 import org.jeecg.modules.communityAccessRecords.entity.CommunityAccessRecords;
@@ -20,6 +21,8 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.extern.slf4j.Slf4j;
 
+import org.jeecg.modules.communitySupplyQuantity.entity.CommunitySupplyQuantity;
+import org.jeecg.modules.communitySupplyQuantity.service.ICommunitySupplyQuantityService;
 import org.jeecgframework.poi.excel.ExcelImportUtil;
 import org.jeecgframework.poi.excel.def.NormalExcelConstants;
 import org.jeecgframework.poi.excel.entity.ExportParams;
@@ -49,7 +52,9 @@ import org.jeecg.common.aspect.annotation.AutoLog;
 public class CommunityAccessRecordsController extends JeecgController<CommunityAccessRecords, ICommunityAccessRecordsService> {
 	@Autowired
 	private ICommunityAccessRecordsService communityAccessRecordsService;
-	
+
+	 @Autowired
+	 private ICommunitySupplyQuantityService communitySupplyQuantityService;
 	/**
 	 * 分页列表查询
 	 *
@@ -62,6 +67,7 @@ public class CommunityAccessRecordsController extends JeecgController<CommunityA
 	@AutoLog(value = "小区出入登记记录表-分页列表查询")
 	@ApiOperation(value="小区出入登记记录表-分页列表查询", notes="小区出入登记记录表-分页列表查询")
 	@GetMapping(value = "/list")
+	@PermissionData(pageComponent = "communityAccessRecords/CommunityAccessRecordsList")
 	public Result<?> queryPageList(CommunityAccessRecords communityAccessRecords,
 								   @RequestParam(name="pageNo", defaultValue="1") Integer pageNo,
 								   @RequestParam(name="pageSize", defaultValue="10") Integer pageSize,
@@ -82,6 +88,8 @@ public class CommunityAccessRecordsController extends JeecgController<CommunityA
 	@ApiOperation(value="小区出入登记记录表-添加", notes="小区出入登记记录表-添加")
 	@PostMapping(value = "/add")
 	public Result<?> add(@RequestBody CommunityAccessRecords communityAccessRecords) {
+		CommunitySupplyQuantity area = communitySupplyQuantityService.getById(communityAccessRecords.getAreaId());
+		communityAccessRecords.setSysOrgCode(area.getSysOrgCode());
 		communityAccessRecordsService.save(communityAccessRecords);
 		return Result.OK("添加成功！");
 	}

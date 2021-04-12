@@ -52,9 +52,12 @@ public class CommunitySupplyQuantity implements Serializable {
     @ApiModelProperty(value = "更新日期")
     private Date updateTime;
 	/**所属部门*/
-	@Dict(dictTable = "sys_depart", dicText = "depart_name", dicCode = "id")
+	@Dict(dictTable = "sys_depart", dicText = "depart_name", dicCode = "org_code")
     @ApiModelProperty(value = "所属部门")
     private String sysOrgCode;
+    /**小区名*/
+    @ApiModelProperty(value = "小区名")
+    private String name;
 	/**口罩*/
 	@Excel(name = "口罩", width = 15)
     @ApiModelProperty(value = "口罩")

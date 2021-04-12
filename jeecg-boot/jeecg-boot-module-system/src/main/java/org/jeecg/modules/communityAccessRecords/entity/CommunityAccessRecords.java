@@ -52,8 +52,13 @@ public class CommunityAccessRecords implements Serializable {
     @ApiModelProperty(value = "更新日期")
     private Date updateTime;
 	/**所属部门*/
+    @Dict(dictTable = "sys_depart", dicText = "depart_name", dicCode = "org_code")
     @ApiModelProperty(value = "所属部门")
     private String sysOrgCode;
+    /**小区id*/
+    @Dict(dictTable = "community_supply_quantity", dicText = "name", dicCode = "id")
+    @ApiModelProperty(value = "所属小区id")
+    private String areaId;
 	/**名字*/
 	@Excel(name = "名字", width = 15)
     @ApiModelProperty(value = "名字")
@@ -61,7 +66,7 @@ public class CommunityAccessRecords implements Serializable {
 	/**手机号*/
 	@Excel(name = "手机号", width = 15)
     @ApiModelProperty(value = "手机号")
-    private Integer mobile;
+    private String mobile;
 	/**门牌号*/
 	@Excel(name = "门牌号", width = 15)
     @ApiModelProperty(value = "门牌号")
@@ -83,5 +88,5 @@ public class CommunityAccessRecords implements Serializable {
 	@Excel(name = "进门 or 出门", width = 15, dicCode = "is_open_door")
 	@Dict(dicCode = "is_open_door")
     @ApiModelProperty(value = "进门 or 出门")
-    private String isOpenDoor;
+    private Integer isOpenDoor;
 }

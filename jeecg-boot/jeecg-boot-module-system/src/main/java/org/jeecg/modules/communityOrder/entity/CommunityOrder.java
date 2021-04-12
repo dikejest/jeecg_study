@@ -54,9 +54,13 @@ public class CommunityOrder implements Serializable {
     @ApiModelProperty(value = "更新日期")
     private Date updateTime;
 	/**所属部门*/
-	@Dict(dictTable = "sys_depart", dicText = "depart_name", dicCode = "id")
+	@Dict(dictTable = "sys_depart", dicText = "depart_name", dicCode = "org_code")
     @ApiModelProperty(value = "所属部门")
     private String sysOrgCode;
+    /**小区id*/
+    @Dict(dictTable = "community_supply_quantity", dicText = "name", dicCode = "id")
+    @ApiModelProperty(value = "所属小区id")
+    private String areaId;
 	/**入库单号*/
 	@Excel(name = "入库单号", width = 25)
     @ApiModelProperty(value = "入库单号")

@@ -1,5 +1,6 @@
 package org.jeecg.modules.communityOrder.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import org.apache.commons.lang.math.RandomUtils;
 import org.jeecg.modules.communityOrder.entity.CommunityOrder;
@@ -13,7 +14,9 @@ import org.springframework.stereotype.Service;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @Description: 疫情物资入库单
@@ -41,7 +44,11 @@ public class CommunityOrderServiceImpl extends ServiceImpl<CommunityOrderMapper,
         //存入入库单号
         communityOrder.setOrderId(orderId);
         //根据部门即小区的org_code来查找对应的小区的库存，然后存入数据
-        CommunitySupplyQuantity quantity = communitySupplyQuantityService.getBySysOrgCode(communityOrder.getSysOrgCode());
+        //CommunitySupplyQuantity quantity = communitySupplyQuantityService.getBySysOrgCode(communityOrder.getSysOrgCode());
+        //根据小区id查找对应的小区
+        CommunitySupplyQuantity quantity = communitySupplyQuantityService.getById(communityOrder.getAreaId());
+        //小区属于的部门
+        communityOrder.setSysOrgCode(quantity.getSysOrgCode());
         CommunitySupplyQuantity communitySupplyQuantity = account(communityOrder,quantity,true);
         communityOrderService.save(communityOrder);
         communitySupplyQuantityService.updateById(communitySupplyQuantity);
@@ -55,7 +62,7 @@ public class CommunityOrderServiceImpl extends ServiceImpl<CommunityOrderMapper,
         wrapper.eq("order_id", communityOrder.getOrderId()).last("limit 1");
         CommunityOrder one = communityOrderService.getOne(wrapper);
         //根据部门即小区的org_code来查找对应的小区的库存，然后存入数据
-        CommunitySupplyQuantity quantity = communitySupplyQuantityService.getBySysOrgCode(communityOrder.getSysOrgCode());
+        CommunitySupplyQuantity quantity = communitySupplyQuantityService.getById(communityOrder.getAreaId());
         //先减掉订单信息，在添加更改的库存信息
         CommunitySupplyQuantity account = account(one, quantity, false);
         CommunitySupplyQuantity quantity1 = account(communityOrder, account, true);
@@ -69,7 +76,7 @@ public class CommunityOrderServiceImpl extends ServiceImpl<CommunityOrderMapper,
     public void removeOrder(String id) {
         CommunityOrder communityOrder = communityOrderService.getById(id);
         //根据部门即小区的org_code来查找对应的小区的库存，然后存入数据
-        CommunitySupplyQuantity one = communitySupplyQuantityService.getBySysOrgCode(communityOrder.getSysOrgCode());
+        CommunitySupplyQuantity one = communitySupplyQuantityService.getById(communityOrder.getAreaId());
         CommunitySupplyQuantity quantity = account(communityOrder, one,false);
         //修改保存进小区库存
         communitySupplyQuantityService.updateById(quantity);
@@ -104,9 +111,19 @@ public class CommunityOrderServiceImpl extends ServiceImpl<CommunityOrderMapper,
 
     //删除小区的所有物资入库单
     @Override
-    public void removeOrders(String sysOrgCode) {
+    public void removeAllOrder(String areaId) {
         QueryWrapper<CommunityOrder> wrapper = new QueryWrapper<>();
-        wrapper.eq("sys_org_code",sysOrgCode);
+        wrapper.eq("area_id",areaId);
         communityOrderService.remove(wrapper);
     }
+
+    //批量删除小区的物资入库单
+    @Override
+    public void removeOrders(String ids) {
+        String[] list = ids.split(",");
+        for (String id : list) {
+            this.communityOrderService.removeOrder(id);
+        }
+    }
+
 }
