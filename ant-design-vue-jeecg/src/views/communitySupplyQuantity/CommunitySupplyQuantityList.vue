@@ -11,7 +11,7 @@
 
     <!-- 操作按钮区域 -->
     <div class="table-operator">
-      <a-button @click="handleAdd" type="primary" icon="plus">新增</a-button>
+      <a-button @click="handleAdd" type="primary" icon="plus" v-has="'community:add'">新增</a-button>
       <a-button type="primary" icon="download" @click="handleExportXls('疫情物资库存表')">导出</a-button>
       <a-upload name="file" :showUploadList="false" :multiple="false" :headers="tokenHeader" :action="importExcelUrl" @change="handleImportExcel">
         <a-button type="primary" icon="import">导入</a-button>
@@ -68,7 +68,7 @@
         </template>
 
         <span slot="action" slot-scope="text, record">
-<!--          <a @click="handleEdit(record)">编辑</a>-->
+          <a @click="handleEdit(record)">编辑</a>
 
           <a-divider type="vertical" />
           <a-dropdown>
@@ -79,7 +79,7 @@
               </a-menu-item>
               <a-menu-item>
                 <a-popconfirm title="确定删除吗?" @confirm="() => handleDelete(record.id)">
-                  <a>删除</a>
+                  <a v-has="'community:delete'">删除</a>
                 </a-popconfirm>
               </a-menu-item>
             </a-menu>
@@ -120,6 +120,31 @@
             customRender:function (t,r,index) {
               return parseInt(index)+1;
             }
+          },
+          {
+            title:'创建人',
+            align:"center",
+            dataIndex: 'createBy'
+          },
+          {
+            title:'创建日期',
+            align:"center",
+            dataIndex: 'createTime'
+          },
+          {
+            title:'更新人',
+            align:"center",
+            dataIndex: 'updateBy'
+          },
+          {
+            title:'更新日期',
+            align:"center",
+            dataIndex: 'updateTime'
+          },
+          {
+            title:'小区名称',
+            align:"center",
+            dataIndex: 'name'
           },
           {
             title:'所属部门',
@@ -195,6 +220,10 @@
       },
       getSuperFieldList(){
         let fieldList=[];
+        fieldList.push({type:'string',value:'createBy',text:'创建人',dictCode:''})
+        fieldList.push({type:'datetime',value:'createTime',text:'创建日期'})
+        fieldList.push({type:'string',value:'updateBy',text:'更新人',dictCode:''})
+        fieldList.push({type:'datetime',value:'updateTime',text:'更新日期'})
         fieldList.push({type:'sel_depart',value:'sysOrgCode',text:'所属部门'})
         fieldList.push({type:'int',value:'mask',text:'口罩',dictCode:''})
         fieldList.push({type:'int',value:'rubberGloves',text:'橡胶手套',dictCode:''})
@@ -203,6 +232,7 @@
         fieldList.push({type:'int',value:'disinfectant',text:'消毒液',dictCode:''})
         fieldList.push({type:'int',value:'alcohol',text:'酒精',dictCode:''})
         fieldList.push({type:'int',value:'temperatureGun',text:'体温枪',dictCode:''})
+        fieldList.push({type:'string',value:'name',text:'小区名称',dictCode:''})
         this.superFieldList = fieldList
       }
     }

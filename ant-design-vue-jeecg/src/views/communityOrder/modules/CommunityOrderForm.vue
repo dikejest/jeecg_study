@@ -4,15 +4,25 @@
       <a-form-model ref="form" :model="model" :rules="validatorRules" slot="detail">
         <a-row>
           <a-col :span="24">
+            <a-form-model-item label="小区名称" :labelCol="labelCol" :wrapperCol="wrapperCol" prop="areaId">
+<!--              <a-input v-model="model.areaId" placeholder="请输入小区id"  ></a-input>-->
+              <j-search-select-tag
+                placeholder="请做出你的选择"
+                v-model="model.areaId"
+                :dictOptions="dictOptions">
+              </j-search-select-tag>
+            </a-form-model-item>
+          </a-col>
+<!--          <a-col :span="24">
             <a-form-model-item label="所属部门" :labelCol="labelCol" :wrapperCol="wrapperCol" prop="sysOrgCode">
               <j-select-depart v-model="model.sysOrgCode" multi  />
             </a-form-model-item>
-          </a-col>
-          <a-col :span="24">
+          </a-col>-->
+<!--          <a-col :span="24">
             <a-form-model-item label="入库单号" :labelCol="labelCol" :wrapperCol="wrapperCol" prop="orderId">
-              <a-input-number v-model="model.orderId" placeholder="请输入入库单号" style="width: 100%" />
+              <a-input v-model="model.orderId" placeholder="请输入入库单号"  ></a-input>
             </a-form-model-item>
-          </a-col>
+          </a-col>-->
           <a-col :span="24">
             <a-form-model-item label="口罩" :labelCol="labelCol" :wrapperCol="wrapperCol" prop="mask">
               <a-input-number v-model="model.mask" placeholder="请输入口罩" style="width: 100%" />
@@ -63,10 +73,11 @@
 
   import { httpAction, getAction } from '@/api/manage'
   import { validateDuplicateValue } from '@/utils/util'
+  import JSearchSelectTag from '@/components/dict/JSearchSelectTag'
 
   export default {
     name: 'CommunityOrderForm',
-    components: {
+    components: {JSearchSelectTag
     },
     props: {
       //表单禁用
@@ -78,6 +89,17 @@
     },
     data () {
       return {
+        selectValue:"",
+        dictOptions:[{
+          text:"选项一",
+          value:"1"
+        },{
+          text:"选项二",
+          value:"2"
+        },{
+          text:"选项三",
+          value:"3"
+        }],
         model:{
          },
         labelCol: {
@@ -94,7 +116,8 @@
         url: {
           add: "/communityOrder/communityOrder/add",
           edit: "/communityOrder/communityOrder/edit",
-          queryById: "/communityOrder/communityOrder/queryById"
+          queryById: "/communityOrder/communityOrder/queryById",
+          queryArea: "/community/QueryArea"
         }
       }
     },
@@ -106,8 +129,18 @@
     created () {
        //备份model原始值
       this.modelDefault = JSON.parse(JSON.stringify(this.model));
+      this.queryAllArea();
     },
     methods: {
+      //查询所有小区id，条件部门编码筛选,然后已text：value的形式显示出来
+      queryAllArea(){
+        let queryUrl =''
+        queryUrl ="/community/QueryArea"
+        httpAction(queryUrl,'','get').then((res)=>{
+          console.log(res);
+           this.dictOptions = res;
+        })
+      },
       add () {
         this.edit(this.modelDefault);
       },

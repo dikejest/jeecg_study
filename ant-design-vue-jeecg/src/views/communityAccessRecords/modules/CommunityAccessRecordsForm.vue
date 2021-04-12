@@ -4,13 +4,23 @@
       <a-form-model ref="form" :model="model" :rules="validatorRules" slot="detail">
         <a-row>
           <a-col :span="24">
+            <a-form-model-item label="小区名称" :labelCol="labelCol" :wrapperCol="wrapperCol" prop="areaId">
+              <!--              <a-input v-model="model.areaId" placeholder="请输入小区id"  ></a-input>-->
+              <j-search-select-tag
+                placeholder="请做出你的选择"
+                v-model="model.areaId"
+                :dictOptions="dictOptions">
+              </j-search-select-tag>
+            </a-form-model-item>
+          </a-col>
+          <a-col :span="24">
             <a-form-model-item label="名字" :labelCol="labelCol" :wrapperCol="wrapperCol" prop="name">
               <a-input v-model="model.name" placeholder="请输入名字"  ></a-input>
             </a-form-model-item>
           </a-col>
           <a-col :span="24">
             <a-form-model-item label="手机号" :labelCol="labelCol" :wrapperCol="wrapperCol" prop="mobile">
-              <a-input-number v-model="model.mobile" placeholder="请输入手机号" style="width: 100%" />
+              <a-input v-model="model.mobile" placeholder="请输入手机号"  ></a-input>
             </a-form-model-item>
           </a-col>
           <a-col :span="24">
@@ -63,7 +73,19 @@
     },
     data () {
       return {
+        dictOptions:[{
+          text:"选项一",
+          value:"1"
+        },{
+          text:"选项二",
+          value:"2"
+        },{
+          text:"选项三",
+          value:"3"
+        }],
         model:{
+            temperature:1,
+            isOpenDoor:1,
          },
         labelCol: {
           xs: { span: 24 },
@@ -91,8 +113,18 @@
     created () {
        //备份model原始值
       this.modelDefault = JSON.parse(JSON.stringify(this.model));
+      this.queryAllArea();
     },
     methods: {
+      //查询所有小区id，条件部门编码筛选,然后已text：value的形式显示出来
+      queryAllArea(){
+        let queryUrl =''
+        queryUrl ="/community/QueryArea"
+        httpAction(queryUrl,'','get').then((res)=>{
+          console.log(res);
+          this.dictOptions = res;
+        })
+      },
       add () {
         this.edit(this.modelDefault);
       },

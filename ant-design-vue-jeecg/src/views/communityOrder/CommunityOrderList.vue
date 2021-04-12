@@ -129,6 +129,7 @@
           {
             title:'创建日期',
             align:"center",
+            sorter: true,
             dataIndex: 'createTime'
           },
           {
@@ -141,6 +142,12 @@
             align:"center",
             sorter: true,
             dataIndex: 'updateTime'
+          },
+          {
+            title:'小区',
+            align:"center",
+            sorter: true,
+            dataIndex: 'areaId_dictText'
           },
           {
             title:'所属部门',
@@ -230,8 +237,9 @@
         fieldList.push({type:'datetime',value:'createTime',text:'创建日期'})
         fieldList.push({type:'sel_user',value:'updateBy',text:'更新人'})
         fieldList.push({type:'datetime',value:'updateTime',text:'更新日期'})
+        fieldList.push({type:'string',value:'areaId',text:'小区id',dictCode:''})
         fieldList.push({type:'sel_depart',value:'sysOrgCode',text:'所属部门'})
-        fieldList.push({type:'int',value:'orderId',text:'入库单号',dictCode:''})
+        fieldList.push({type:'string',value:'orderId',text:'入库单号',dictCode:''})
         fieldList.push({type:'int',value:'mask',text:'口罩',dictCode:''})
         fieldList.push({type:'int',value:'rubberGloves',text:'橡胶手套',dictCode:''})
         fieldList.push({type:'int',value:'disposableGloves',text:'一次性手套',dictCode:''})

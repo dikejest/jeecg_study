@@ -130,6 +130,7 @@
           {
             title:'创建日期',
             align:"center",
+            sorter: true,
             dataIndex: 'createTime'
           },
           {
@@ -140,12 +141,18 @@
           {
             title:'更新日期',
             align:"center",
+            sorter: true,
             dataIndex: 'updateTime'
           },
           {
             title:'所属部门',
             align:"center",
-            dataIndex: 'sysOrgCode'
+            dataIndex: 'sysOrgCode_dictText'
+          },
+          {
+            title:'小区',
+            align:"center",
+            dataIndex: 'areaId_dictText'
           },
           {
             title:'名字',
@@ -170,6 +177,7 @@
           {
             title:'温度',
             align:"center",
+            sorter: true,
             dataIndex: 'temperature_dictText'
           },
           {
@@ -220,14 +228,15 @@
         fieldList.push({type:'datetime',value:'createTime',text:'创建日期'})
         fieldList.push({type:'string',value:'updateBy',text:'更新人',dictCode:''})
         fieldList.push({type:'datetime',value:'updateTime',text:'更新日期'})
-        fieldList.push({type:'string',value:'sysOrgCode',text:'所属部门',dictCode:''})
+        fieldList.push({type:'sel_depart',value:'sysOrgCode',text:'所属部门'})
+        fieldList.push({type:'string',value:'areaId',text:'小区id',dictCode:''})
         fieldList.push({type:'string',value:'name',text:'名字',dictCode:''})
-        fieldList.push({type:'int',value:'mobile',text:'手机号',dictCode:''})
+        fieldList.push({type:'string',value:'mobile',text:'手机号',dictCode:''})
         fieldList.push({type:'string',value:'doorNo',text:'门牌号',dictCode:''})
         fieldList.push({type:'string',value:'course',text:'事由',dictCode:''})
         fieldList.push({type:'int',value:'temperature',text:'温度',dictCode:'temperature'})
         fieldList.push({type:'string',value:'idNo',text:'身份证号',dictCode:''})
-        fieldList.push({type:'string',value:'isOpenDoor',text:'进门 or 出门',dictCode:'is_open_door'})
+        fieldList.push({type:'int',value:'isOpenDoor',text:'进门 or 出门',dictCode:'is_open_door'})
         this.superFieldList = fieldList
       }
     }
